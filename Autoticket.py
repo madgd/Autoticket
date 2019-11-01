@@ -183,46 +183,48 @@ class Concert(object):
                     else:
                         j.click()
                         break
-
-            buybutton = self.driver.find_element_by_class_name('buybtn')
-            buybutton_text = buybutton.text
-            # print(buybutton_text)
+            try:
+                buybutton = self.driver.find_element_by_class_name('buybtn')
+                buybutton_text = buybutton.text
+                # print(buybutton_text)
             
-            def add_ticket(): # 设置增加票数
-                try:
-                    for i in range(self.ticket_num - 1):  
-                        addbtn = WebDriverWait(self.driver, self.total_wait_time, self.refresh_wait_time).until(
-                            EC.presence_of_element_located((By.XPATH, "//div[@class='cafe-c-input-number']/a[2]")))
-                        addbtn.click()
-                except:
-                    raise Exception("***错误：票数增加失败***")
+                def add_ticket(): # 设置增加票数
+                    try:
+                        for i in range(self.ticket_num - 1):  
+                            addbtn = WebDriverWait(self.driver, self.total_wait_time, self.refresh_wait_time).until(
+                                EC.presence_of_element_located((By.XPATH, "//div[@class='cafe-c-input-number']/a[2]")))
+                            addbtn.click()
+                    except:
+                        raise Exception("***错误：票数增加失败***")
 
-            if buybutton_text == "即将开抢" or buybutton_text == "即将开售":
-                self.status = 2
+                if buybutton_text == "即将开抢" or buybutton_text == "即将开售":
+                    self.status = 2
+                    self.driver.refresh()
+                    print('---尚未开售，刷新等待---')
+                    continue
+
+                elif buybutton_text == "立即预订":
+                    add_ticket()
+                    buybutton.click()
+                    self.status = 3
+
+                elif buybutton_text == "立即购买":
+                    add_ticket()
+                    buybutton.click()
+                    self.status = 4
+
+                elif buybutton_text == "选座购买":  # 选座购买暂时无法完成自动化
+                    # buybutton.click()
+                    self.status = 5
+                    print("###请自行选择位置和票价###")
+                    break
+
+                elif buybutton_text == "提交缺货登记":
+                    print('###抢票失败，请手动提交缺货登记###')
+                    break
+            except:
                 self.driver.refresh()
-                print('---尚未开售，刷新等待---')
-                continue
-
-            elif buybutton_text == "立即预订":
-                add_ticket()
-                buybutton.click()
-                self.status = 3
-
-            elif buybutton_text == "立即购买":
-                add_ticket()
-                buybutton.click()
-                self.status = 4
-
-            elif buybutton_text == "选座购买":  # 选座购买暂时无法完成自动化
-                # buybutton.click()
-                self.status = 5
-                print("###请自行选择位置和票价###")
-                break
-
-            elif buybutton_text == "提交缺货登记":
-                print('###抢票失败，请手动提交缺货登记###')
-                break
-
+                print("下一次")
                 
     def choose_ticket_2(self):  # for type 2, i.e., piao.damai.cn
         self.time_start = time()
@@ -324,7 +326,8 @@ class Concert(object):
                 button_replace = 9
                 print('###选择购票人信息###')
                 try:
-                    list_xpath = "//*[@id=\"confirmOrder_1\"]/div[2]/div[2]/div[1]/div[%d]/label/span[1]/input"
+                    #list_xpath = "//*[@id=\"confirmOrder_1\"]/div[2]/div[2]/div[1]/div[%d]/label/span[1]/input"
+                    list_xpath = "/html/body/div[2]/div[2]/div/div[2]/div[2]/div[1]/div[%d]/label/span[1]/input"
                     for i in range(len(self.real_name)): # 选择第i个实名者
                         WebDriverWait(self.driver, self.total_wait_time, self.refresh_wait_time).until(
                             EC.presence_of_element_located((By.XPATH, list_xpath%(i+1)))).click()
@@ -430,3 +433,4 @@ if __name__ == '__main__':
             print(e)
             con.driver.get(con.target_url)
     con.finish()
+
